@@ -7,7 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import static com.adriantache.inventoryapp.db.ProductContract.ProductEntry.*;
 
 /**
- * Created by elabi3 on 03/05/2018.
+ * Helper class to build the products table
  **/
 public class ProductHelper extends SQLiteOpenHelper {
     private final static String DATABASE_NAME = "inventory.db";
@@ -26,12 +26,14 @@ public class ProductHelper extends SQLiteOpenHelper {
                 COLUMN_QUANTITY + " INTEGER NOT NULL, "+
                 COLUMN_SUPPLIER_NAME + " TEXT NOT NULL, "+
                 COLUMN_SUPPLIER_PHONE+ " TEXT);";
+
         db.execSQL(SQL_CREATE);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         final String SQL_DESTROY = "DROP TABLE IF EXISTS"+TABLE_NAME+";";
+
         db.execSQL(SQL_DESTROY);
         onCreate(db);
     }
