@@ -32,7 +32,7 @@ public class ProductHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        final String SQL_DESTROY = "DROP TABLE IF EXISTS"+TABLE_NAME+";";
+        final String SQL_DESTROY = "DROP TABLE IF EXISTS "+TABLE_NAME+";";
 
         db.execSQL(SQL_DESTROY);
         onCreate(db);
