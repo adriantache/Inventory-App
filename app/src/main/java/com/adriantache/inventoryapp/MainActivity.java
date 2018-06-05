@@ -1,72 +1,119 @@
 package com.adriantache.inventoryapp;
 
+import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.Intent;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import com.adriantache.inventoryapp.db.ProductHelper;
+import com.adriantache.inventoryapp.adapter.ProductCursorAdapter;
 
+import static com.adriantache.inventoryapp.db.ProductContract.CONTENT_URI;
 import static com.adriantache.inventoryapp.db.ProductContract.ProductEntry.COLUMN_PRICE;
 import static com.adriantache.inventoryapp.db.ProductContract.ProductEntry.COLUMN_PRODUCT_NAME;
 import static com.adriantache.inventoryapp.db.ProductContract.ProductEntry.COLUMN_QUANTITY;
-import static com.adriantache.inventoryapp.db.ProductContract.ProductEntry.COLUMN_SUPPLIER_NAME;
-import static com.adriantache.inventoryapp.db.ProductContract.ProductEntry.COLUMN_SUPPLIER_PHONE;
-import static com.adriantache.inventoryapp.db.ProductContract.ProductEntry.TABLE_NAME;
+import static com.adriantache.inventoryapp.db.ProductContract.ProductEntry._ID;
 
-public class MainActivity extends AppCompatActivity {
-    private ProductHelper productHelper;
-    TextView textView;
+public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+    private ProductCursorAdapter productCursorAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        textView = findViewById(R.id.text_view);
+        ListView listView = findViewById(R.id.listView);
 
-        //todo maybe move this?
-        productHelper = new ProductHelper(this);
+        // Setup FAB to open EditorActivity
+        FloatingActionButton floatingActionButton = findViewById(R.id.floatingActionButton);
+        floatingActionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, EditorActivity.class);
+                MainActivity.this.startActivity(intent);
+            }
+        });
 
-        //todo remove these test calls after Udacity review
-        //insert some test data (will probably get duplicated, who cares)
-        insertData("Product",1.11f,10,"Supplier","004 0777 777 777");
-        //read the data to update the TextView
-        readData();
+        getSupportLoaderManager().initLoader(1, null, this).forceLoad();
+
+        productCursorAdapter = new ProductCursorAdapter(this, null);
+        listView.setAdapter(productCursorAdapter);
+
+        TextView errorText = findViewById(R.id.errorText);
+        listView.setEmptyView(errorText);
+
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                //add intent for editing entry
+                Intent intent = new Intent(getApplicationContext(), EditorActivity.class);
+                final Uri uri = ContentUris.withAppendedId(CONTENT_URI, id);
+                intent.setData(uri);
+                startActivity(intent);
+
+                //onClickListener for SALE button
+                Button sale = view.findViewById(R.id.sale);
+                sale.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        String[] projection = {_ID, COLUMN_QUANTITY};
+                        int quantity = -1;
+
+                        Cursor c = getContentResolver().query(uri, projection, null, null, null);
+
+                        if (c != null && c.getCount() != 0) {
+                            c.moveToPosition(0);
+                            quantity = c.getInt(c.getColumnIndex(COLUMN_QUANTITY));
+                            c.close();
+                        }
+
+                        if (quantity < 0)
+                            Toast.makeText(MainActivity.this, "Could not update quantity!", Toast.LENGTH_SHORT).show();
+                        else {
+                            if (quantity > 0) quantity--;
+
+                            ContentValues values = new ContentValues();
+                            values.put(COLUMN_QUANTITY, quantity);
+
+                            if (getContentResolver().update(uri, values, null, null) == 0)
+                                Toast.makeText(MainActivity.this, "Could not update quantity!", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+            }
+        });
     }
 
-    //todo do something with the data
-    private void readData() {
-        SQLiteDatabase db = productHelper.getReadableDatabase();
 
-        String[] columns = {COLUMN_PRODUCT_NAME,COLUMN_PRICE,COLUMN_QUANTITY,COLUMN_SUPPLIER_NAME,COLUMN_SUPPLIER_PHONE};
+    @NonNull
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, @Nullable Bundle args) {
+        String[] projection = {_ID, COLUMN_PRODUCT_NAME, COLUMN_PRICE, COLUMN_QUANTITY};
 
-        Cursor cursor = null;
-        try {
-            cursor = db.query(TABLE_NAME, columns, null, null, null, null, null);
-
-            int count = cursor.getCount();
-            textView.setText(String.valueOf(count));
-        } finally {
-            if (cursor != null) cursor.close();
-        }
+        return new CursorLoader(this, CONTENT_URI, projection, null, null, null);
     }
 
-    //return result to detect errors (-1)
-    //todo checks for empty fields in method calling this method
-    private long insertData(String product_name, float price, int quantity, String supplier_name, String supplier_phone) {
-        SQLiteDatabase db = productHelper.getWritableDatabase();
+    @Override
+    public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor data) {
+        productCursorAdapter.swapCursor(data);
+    }
 
-        ContentValues values = new ContentValues();
-        values.put(COLUMN_PRODUCT_NAME, product_name);
-        //multiply price by 100 to store it as int in the database
-        values.put(COLUMN_PRICE, (int) price*100);
-        values.put(COLUMN_QUANTITY,quantity);
-        values.put(COLUMN_SUPPLIER_NAME,supplier_name);
-        values.put(COLUMN_SUPPLIER_PHONE,supplier_phone);
-
-        return db.insert(TABLE_NAME, null, values);
+    @Override
+    public void onLoaderReset(@NonNull Loader<Cursor> loader) {
+        productCursorAdapter.swapCursor(null);
     }
 }

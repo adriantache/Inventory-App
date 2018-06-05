@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Inventory App</string>
+    <string name="no_products">No products in database. \nWhy not use the button below to add one?</string>
+    <string name="sale">SALE</string>
+    <string name="quantity_label">Quantity:</string>
+    <string name="save">Save</string>
 </resources>
