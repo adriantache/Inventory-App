@@ -2,6 +2,7 @@ package com.adriantache.inventoryapp;
 
 import android.content.ContentValues;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -41,6 +42,8 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
     private EditText supplierName;
     private EditText supplierPhone;
     private Button deleteProduct;
+    private Button callSupplier;
+    private String supplierPhoneNumber;
 
     private Uri currentProductUri = null;
     private boolean valuesChanged = false;
@@ -114,6 +117,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         supplierName = findViewById(R.id.supplierName);
         supplierPhone = findViewById(R.id.supplierPhone);
         deleteProduct = findViewById(R.id.deleteProduct);
+        callSupplier = findViewById(R.id.callSupplier);
 
         currentProductUri = getIntent().getData();
 
@@ -147,7 +151,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
             @Override
             public void onClick(View v) {
                 int quantity = Integer.valueOf(productQuantity.getText().toString());
-                if (quantity>0) quantity--;
+                if (quantity > 0) quantity--;
                 productQuantity.setText(String.valueOf(quantity));
             }
         });
@@ -159,16 +163,30 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
                 productQuantity.setText(String.valueOf(++quantity));
             }
         });
+
+        callSupplier.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(Intent.ACTION_DIAL);
+                if (TextUtils.isEmpty(supplierPhoneNumber))
+                    supplierPhoneNumber = supplierPhone.getText().toString();
+                intent.setData(Uri.parse("tel:" + supplierPhoneNumber));
+                if (intent.resolveActivity(getPackageManager()) != null) {
+                    startActivity(intent);
+                }
+            }
+        });
     }
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         super.onPrepareOptionsMenu(menu);
 
-        // If this is a new product, hide the delete button.
         if (currentProductUri == null) {
             deleteProduct = findViewById(R.id.deleteProduct);
             deleteProduct.setVisibility(View.INVISIBLE);
+            callSupplier = findViewById(R.id.callSupplier);
+            callSupplier.setVisibility(View.INVISIBLE);
         }
         return true;
     }
@@ -257,21 +275,18 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         String sName = supplierName.getText().toString().trim();
         if (TextUtils.isEmpty(sName)) return -1;
 
-        String sPhone = supplierName.getText().toString().trim();
+        String sPhone = supplierPhone.getText().toString().trim();
 
         ContentValues values = new ContentValues();
-        values.put(COLUMN_PRODUCT_NAME,pName);
+        values.put(COLUMN_PRODUCT_NAME, pName);
         values.put(COLUMN_PRICE, pPrice);
-        values.put(COLUMN_QUANTITY,pQuantity);
+        values.put(COLUMN_QUANTITY, pQuantity);
         values.put(COLUMN_SUPPLIER_NAME, sName);
         values.put(COLUMN_SUPPLIER_PHONE, sPhone);
 
         if (getContentResolver().insert(CONTENT_URI, values) == null) return ERROR_VALUE;
         else return 1;
     }
-
-
-
 
 
     private int updateData() {
@@ -301,12 +316,12 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         String sName = supplierName.getText().toString().trim();
         if (TextUtils.isEmpty(sName)) return -1;
 
-        String sPhone = supplierName.getText().toString().trim();
+        String sPhone = supplierPhone.getText().toString().trim();
 
         ContentValues values = new ContentValues();
-        values.put(COLUMN_PRODUCT_NAME,pName);
+        values.put(COLUMN_PRODUCT_NAME, pName);
         values.put(COLUMN_PRICE, pPrice);
-        values.put(COLUMN_QUANTITY,pQuantity);
+        values.put(COLUMN_QUANTITY, pQuantity);
         values.put(COLUMN_SUPPLIER_NAME, sName);
         values.put(COLUMN_SUPPLIER_PHONE, sPhone);
 
@@ -355,12 +370,16 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
 
     @Override
     public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor data) {
-        data.moveToPosition(0);
-        productName.setText(data.getString(data.getColumnIndex(COLUMN_PRODUCT_NAME)));
-        productPrice.setText(String.valueOf(data.getInt(data.getColumnIndex(COLUMN_PRICE))));
-        productQuantity.setText(String.valueOf(data.getInt(data.getColumnIndex(COLUMN_QUANTITY))));
-        supplierName.setText(data.getString(data.getColumnIndex(COLUMN_SUPPLIER_NAME)));
-        supplierPhone.setText(data.getString(data.getColumnIndex(COLUMN_SUPPLIER_PHONE)));
+        if (data == null || data.getCount() == 0) {//do nothing
+        } else {
+            data.moveToPosition(0);
+            productName.setText(data.getString(data.getColumnIndex(COLUMN_PRODUCT_NAME)));
+            productPrice.setText(String.valueOf(data.getInt(data.getColumnIndex(COLUMN_PRICE))));
+            productQuantity.setText(String.valueOf(data.getInt(data.getColumnIndex(COLUMN_QUANTITY))));
+            supplierName.setText(data.getString(data.getColumnIndex(COLUMN_SUPPLIER_NAME)));
+            supplierPhoneNumber = data.getString(data.getColumnIndex(COLUMN_SUPPLIER_PHONE));
+            supplierPhone.setText(supplierPhoneNumber);
+        }
     }
 
     @Override
@@ -369,6 +388,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         productPrice.setText("");
         productQuantity.setText("0");
         supplierName.setText("");
+        supplierPhoneNumber = "";
         supplierPhone.setText("");
     }
 }

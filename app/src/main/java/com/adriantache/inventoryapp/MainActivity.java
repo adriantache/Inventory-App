@@ -91,6 +91,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
                             if (getContentResolver().update(uri, values, null, null) == 0)
                                 Toast.makeText(MainActivity.this, "Could not update quantity!", Toast.LENGTH_SHORT).show();
+                            else getSupportLoaderManager().initLoader(1, null, MainActivity.this).forceLoad();
                         }
                     }
                 });
