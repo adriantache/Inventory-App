@@ -11,6 +11,10 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import static com.adriantache.inventoryapp.db.ProductContract.CONTENT_AUTHORITY;
+import static com.adriantache.inventoryapp.db.ProductContract.ProductEntry.COLUMN_PRICE;
+import static com.adriantache.inventoryapp.db.ProductContract.ProductEntry.COLUMN_PRODUCT_NAME;
+import static com.adriantache.inventoryapp.db.ProductContract.ProductEntry.COLUMN_QUANTITY;
+import static com.adriantache.inventoryapp.db.ProductContract.ProductEntry.COLUMN_SUPPLIER_NAME;
 import static com.adriantache.inventoryapp.db.ProductContract.ProductEntry.TABLE_NAME;
 
 /**
@@ -155,10 +159,25 @@ public class ProductProvider extends ContentProvider {
     }
 
     private boolean testValues(@Nullable ContentValues values) {
-        //todo test values input
+        if (values == null) throw new IllegalArgumentException("No values received");
 
+        String name = values.getAsString(COLUMN_PRODUCT_NAME);
+        if (name == null)
+            throw new IllegalArgumentException("Product requires a name");
 
-        //supplier phone can be null, anything else cannot
+        int price = values.getAsInteger(COLUMN_PRICE);
+        if (price<=0)
+            throw new IllegalArgumentException("Product price cannot be less than 1");
+
+        int quantity = values.getAsInteger(COLUMN_QUANTITY);
+        if (quantity<=0)
+            throw new IllegalArgumentException("Product quantity cannot be less than 1");
+
+        String sName = values.getAsString(COLUMN_SUPPLIER_NAME);
+        if (sName == null)
+            throw new IllegalArgumentException("Supplier requires a name");
+
+        //supplier phone can be empty, theoretically, although the editor won't let them
 
         return true;
     }

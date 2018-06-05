@@ -35,6 +35,8 @@ import static com.adriantache.inventoryapp.db.ProductContract.ProductEntry.COLUM
 public class EditorActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private static final int ERROR_VALUE = -1;
+    private static final int MISSING_FIELD = -10;
+
 
     private EditText productName;
     private EditText productPrice;
@@ -207,6 +209,8 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
 
                 if (insertResult == ERROR_VALUE)
                     Toast.makeText(this, "Error inserting data!", Toast.LENGTH_SHORT).show();
+                else if  (insertResult == MISSING_FIELD)
+                    Toast.makeText(this, "Missing info!", Toast.LENGTH_SHORT).show();
                 else {
                     Toast.makeText(this, "Successfully added product.", Toast.LENGTH_SHORT).show();
                     finish();
@@ -216,6 +220,8 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
 
                 if (updateResult == ERROR_VALUE)
                     Toast.makeText(this, "Error updating data!", Toast.LENGTH_SHORT).show();
+                else if  (updateResult == MISSING_FIELD)
+                    Toast.makeText(this, "Missing info!", Toast.LENGTH_SHORT).show();
                 else if (!valuesChanged) {
                     Toast.makeText(this, "Nothing changed.", Toast.LENGTH_SHORT).show();
                     finish();
@@ -252,7 +258,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         String pName = productName.getText().toString().trim();
         if (TextUtils.isEmpty(pName)) return -1;
 
-        int pPrice;
+        Integer pPrice = ERROR_VALUE;
         try {
             String price = productPrice.getText().toString().trim();
             if (TextUtils.isEmpty(price)) pPrice = 0;
@@ -262,7 +268,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
             return ERROR_VALUE;
         }
 
-        int pQuantity;
+        Integer pQuantity = ERROR_VALUE;
         try {
             String quantity = productQuantity.getText().toString().trim();
             if (TextUtils.isEmpty(quantity)) pQuantity = 0;
@@ -276,6 +282,8 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         if (TextUtils.isEmpty(sName)) return -1;
 
         String sPhone = supplierPhone.getText().toString().trim();
+
+        if (TextUtils.isEmpty(pName)||pPrice==ERROR_VALUE||pQuantity==ERROR_VALUE||TextUtils.isEmpty(sName)||TextUtils.isEmpty(sPhone)) return MISSING_FIELD;
 
         ContentValues values = new ContentValues();
         values.put(COLUMN_PRODUCT_NAME, pName);
@@ -293,7 +301,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         String pName = productName.getText().toString().trim();
         if (TextUtils.isEmpty(pName)) return -1;
 
-        int pPrice;
+        int pPrice = ERROR_VALUE;
         try {
             String price = productPrice.getText().toString().trim();
             if (TextUtils.isEmpty(price)) pPrice = 0;
@@ -303,7 +311,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
             return ERROR_VALUE;
         }
 
-        int pQuantity;
+        int pQuantity = ERROR_VALUE;
         try {
             String quantity = productQuantity.getText().toString().trim();
             if (TextUtils.isEmpty(quantity)) pQuantity = 0;
@@ -317,6 +325,8 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         if (TextUtils.isEmpty(sName)) return -1;
 
         String sPhone = supplierPhone.getText().toString().trim();
+
+        if (TextUtils.isEmpty(pName)||pPrice==ERROR_VALUE||pQuantity==ERROR_VALUE||TextUtils.isEmpty(sName)||TextUtils.isEmpty(sPhone)) return MISSING_FIELD;
 
         ContentValues values = new ContentValues();
         values.put(COLUMN_PRODUCT_NAME, pName);
