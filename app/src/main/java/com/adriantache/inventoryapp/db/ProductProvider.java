@@ -170,7 +170,7 @@ public class ProductProvider extends ContentProvider {
             throw new IllegalArgumentException("Product price cannot be less than 1");
 
         int quantity = values.getAsInteger(COLUMN_QUANTITY);
-        if (quantity<=0)
+        if (quantity<0)
             throw new IllegalArgumentException("Product quantity cannot be less than 1");
 
         String sName = values.getAsString(COLUMN_SUPPLIER_NAME);

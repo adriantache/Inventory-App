@@ -58,7 +58,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
             if (event.getAction() == MotionEvent.ACTION_UP)
                 v.performClick();
 
-            return true;
+            return false;
         }
     };
 
@@ -149,11 +149,13 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
             }
         });
 
+        //todo figure out why this is incrementing/decrementing twice
         quantityMinus.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 int quantity = Integer.valueOf(productQuantity.getText().toString());
-                if (quantity > 0) quantity--;
+                if (currentProductUri == null && quantity > 1) quantity--;
+                else if (quantity > 0) quantity--;
                 productQuantity.setText(String.valueOf(quantity));
             }
         });
@@ -162,7 +164,8 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
             @Override
             public void onClick(View v) {
                 int quantity = Integer.valueOf(productQuantity.getText().toString());
-                productQuantity.setText(String.valueOf(++quantity));
+                quantity++;
+                productQuantity.setText(String.valueOf(quantity));
             }
         });
 
@@ -209,7 +212,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
 
                 if (insertResult == ERROR_VALUE)
                     Toast.makeText(this, "Error inserting data!", Toast.LENGTH_SHORT).show();
-                else if  (insertResult == MISSING_FIELD)
+                else if (insertResult == MISSING_FIELD)
                     Toast.makeText(this, "Missing info!", Toast.LENGTH_SHORT).show();
                 else {
                     Toast.makeText(this, "Successfully added product.", Toast.LENGTH_SHORT).show();
@@ -220,7 +223,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
 
                 if (updateResult == ERROR_VALUE)
                     Toast.makeText(this, "Error updating data!", Toast.LENGTH_SHORT).show();
-                else if  (updateResult == MISSING_FIELD)
+                else if (updateResult == MISSING_FIELD)
                     Toast.makeText(this, "Missing info!", Toast.LENGTH_SHORT).show();
                 else if (!valuesChanged) {
                     Toast.makeText(this, "Nothing changed.", Toast.LENGTH_SHORT).show();
@@ -271,7 +274,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         Integer pQuantity = ERROR_VALUE;
         try {
             String quantity = productQuantity.getText().toString().trim();
-            if (TextUtils.isEmpty(quantity)) pQuantity = 0;
+            if (Integer.valueOf(quantity) < 1) pQuantity = 1;
             else pQuantity = Integer.valueOf(quantity);
         } catch (NumberFormatException e) {
             e.printStackTrace();
@@ -283,7 +286,8 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
 
         String sPhone = supplierPhone.getText().toString().trim();
 
-        if (TextUtils.isEmpty(pName)||pPrice==ERROR_VALUE||pQuantity==ERROR_VALUE||TextUtils.isEmpty(sName)||TextUtils.isEmpty(sPhone)) return MISSING_FIELD;
+        if (TextUtils.isEmpty(pName) || pPrice == ERROR_VALUE || pQuantity == ERROR_VALUE || TextUtils.isEmpty(sName) || TextUtils.isEmpty(sPhone))
+            return MISSING_FIELD;
 
         ContentValues values = new ContentValues();
         values.put(COLUMN_PRODUCT_NAME, pName);
@@ -326,7 +330,8 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
 
         String sPhone = supplierPhone.getText().toString().trim();
 
-        if (TextUtils.isEmpty(pName)||pPrice==ERROR_VALUE||pQuantity==ERROR_VALUE||TextUtils.isEmpty(sName)||TextUtils.isEmpty(sPhone)) return MISSING_FIELD;
+        if (TextUtils.isEmpty(pName) || pPrice == ERROR_VALUE || pQuantity == ERROR_VALUE || TextUtils.isEmpty(sName) || TextUtils.isEmpty(sPhone))
+            return MISSING_FIELD;
 
         ContentValues values = new ContentValues();
         values.put(COLUMN_PRODUCT_NAME, pName);
@@ -396,7 +401,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
     public void onLoaderReset(@NonNull Loader<Cursor> loader) {
         productName.setText("");
         productPrice.setText("");
-        productQuantity.setText("0");
+        productQuantity.setText("1");
         supplierName.setText("");
         supplierPhoneNumber = "";
         supplierPhone.setText("");

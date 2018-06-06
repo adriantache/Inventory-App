@@ -64,37 +64,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 final Uri uri = ContentUris.withAppendedId(CONTENT_URI, id);
                 intent.setData(uri);
                 startActivity(intent);
-
-                //onClickListener for SALE button
-                Button sale = view.findViewById(R.id.sale);
-                sale.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        String[] projection = {_ID, COLUMN_QUANTITY};
-                        int quantity = -1;
-
-                        Cursor c = getContentResolver().query(uri, projection, null, null, null);
-
-                        if (c != null && c.getCount() != 0) {
-                            c.moveToPosition(0);
-                            quantity = c.getInt(c.getColumnIndex(COLUMN_QUANTITY));
-                            c.close();
-                        }
-
-                        if (quantity < 0)
-                            Toast.makeText(MainActivity.this, "Could not update quantity!", Toast.LENGTH_SHORT).show();
-                        else {
-                            if (quantity > 0) quantity--;
-
-                            ContentValues values = new ContentValues();
-                            values.put(COLUMN_QUANTITY, quantity);
-
-                            if (getContentResolver().update(uri, values, null, null) == 0)
-                                Toast.makeText(MainActivity.this, "Could not update quantity!", Toast.LENGTH_SHORT).show();
-                            else getSupportLoaderManager().initLoader(1, null, MainActivity.this).forceLoad();
-                        }
-                    }
-                });
             }
         });
     }
