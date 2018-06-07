@@ -3,6 +3,7 @@ package com.adriantache.inventoryapp.adapter;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.view.LayoutInflater;
@@ -13,19 +14,34 @@ import android.widget.CursorAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.adriantache.inventoryapp.MainActivity;
+import com.adriantache.inventoryapp.EditorActivity;
 import com.adriantache.inventoryapp.R;
 
 import static com.adriantache.inventoryapp.db.ProductContract.CONTENT_URI;
 import static com.adriantache.inventoryapp.db.ProductContract.ProductEntry.COLUMN_PRICE;
 import static com.adriantache.inventoryapp.db.ProductContract.ProductEntry.COLUMN_PRODUCT_NAME;
 import static com.adriantache.inventoryapp.db.ProductContract.ProductEntry.COLUMN_QUANTITY;
+import static com.adriantache.inventoryapp.db.ProductContract.ProductEntry.COLUMN_SUPPLIER_NAME;
+import static com.adriantache.inventoryapp.db.ProductContract.ProductEntry.COLUMN_SUPPLIER_PHONE;
 import static com.adriantache.inventoryapp.db.ProductContract.ProductEntry._ID;
 
 /**
  * CursorAdapter implementation
  **/
 public class ProductCursorAdapter extends CursorAdapter {
+    private int id;
+    private Context context;
+
+    private View.OnClickListener itemView = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            //add intent for editing entry
+            Intent intent = new Intent(context, EditorActivity.class);
+            final Uri uri = ContentUris.withAppendedId(CONTENT_URI, id);
+            intent.setData(uri);
+            context.startActivity(intent);
+        }
+    };
 
     public ProductCursorAdapter(Context context, Cursor c) {
         super(context, c, 0);
@@ -42,42 +58,55 @@ public class ProductCursorAdapter extends CursorAdapter {
         TextView productPrice = view.findViewById(R.id.productPrice);
         TextView productQuantity = view.findViewById(R.id.productQuantity);
 
-        final Context context1 = context;
+        final String name = cursor.getString(cursor.getColumnIndex(COLUMN_PRODUCT_NAME));
+        final int price = cursor.getInt(cursor.getColumnIndex(COLUMN_PRICE));
+        this.context = context;
 
-        productName.setText(cursor.getString(cursor.getColumnIndex(COLUMN_PRODUCT_NAME)));
-        productPrice.setText(String.valueOf(cursor.getInt(cursor.getColumnIndex(COLUMN_PRICE))));
+        productName.setText(name);
+        productPrice.setText(String.valueOf(price));
 
-        final int id = cursor.getInt(cursor.getColumnIndex(_ID));
+        id = cursor.getInt(cursor.getColumnIndex(_ID));
 
         final int quantity = cursor.getInt(cursor.getColumnIndex(COLUMN_QUANTITY));
         String quantityText = context.getString(R.string.quantity_label)
                 + String.valueOf(quantity);
         productQuantity.setText(quantityText);
 
-        //onClickListener for SALE button
-        //todo make this work, too tired now
         Button sale = view.findViewById(R.id.sale);
-        sale.setOnClickListener(new View.OnClickListener() {
+
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_PRODUCT_NAME, name);
+        values.put(COLUMN_PRICE, price);
+        values.put(COLUMN_SUPPLIER_NAME, cursor.getString(cursor.getColumnIndex(COLUMN_SUPPLIER_NAME)));
+        values.put(COLUMN_SUPPLIER_PHONE, cursor.getString(cursor.getColumnIndex(COLUMN_SUPPLIER_PHONE)));
+
+        productName.setOnClickListener(itemView);
+        productPrice.setOnClickListener(itemView);
+        productQuantity.setOnClickListener(itemView);
+        setOnClick(sale, quantity, id, values);
+    }
+
+    private void setOnClick(View view, final int originalQuantity, final int id, final ContentValues values) {
+        view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String[] projection = {_ID, COLUMN_QUANTITY};
-                int quantity1 = quantity;
+                int quantity = originalQuantity;
 
-                Uri uri = ContentUris.withAppendedId(CONTENT_URI, id);
-
-                if (quantity1 < 0)
-                    Toast.makeText(context1, "Could not update quantity!", Toast.LENGTH_SHORT).show();
+                if (quantity < 0)
+                    Toast.makeText(context, "Could not update quantity!", Toast.LENGTH_SHORT).show();
                 else {
-                    if (quantity1 > 0) quantity1--;
+                    if (quantity > 0) quantity--;
 
-                    ContentValues values = new ContentValues();
-                    values.put(COLUMN_QUANTITY, quantity1);
-
-                    if (context1.getContentResolver().update(uri, values, null, null) == 0)
-                        Toast.makeText(context1, "Could not update quantity!", Toast.LENGTH_SHORT).show();
-//                    else context1.getLoaderManager().initLoader(1, null, context1).forceLoad();
+                    updateQuantity(quantity, id, values);
                 }
             }
         });
+    }
+
+    private void updateQuantity(int quantity, int id, ContentValues values) {
+        values.put(COLUMN_QUANTITY, quantity);
+
+        context.getContentResolver()
+                .update(ContentUris.withAppendedId(CONTENT_URI, id), values, null, null);
     }
 }

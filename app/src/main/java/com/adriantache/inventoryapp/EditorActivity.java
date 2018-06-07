@@ -155,7 +155,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
             public void onClick(View v) {
                 int quantity = Integer.valueOf(productQuantity.getText().toString());
                 if (currentProductUri == null && quantity > 1) quantity--;
-                else if (quantity > 0) quantity--;
+                else if (currentProductUri != null && quantity > 0) quantity--;
                 productQuantity.setText(String.valueOf(quantity));
             }
         });

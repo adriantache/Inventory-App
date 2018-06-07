@@ -26,6 +26,8 @@ import static com.adriantache.inventoryapp.db.ProductContract.CONTENT_URI;
 import static com.adriantache.inventoryapp.db.ProductContract.ProductEntry.COLUMN_PRICE;
 import static com.adriantache.inventoryapp.db.ProductContract.ProductEntry.COLUMN_PRODUCT_NAME;
 import static com.adriantache.inventoryapp.db.ProductContract.ProductEntry.COLUMN_QUANTITY;
+import static com.adriantache.inventoryapp.db.ProductContract.ProductEntry.COLUMN_SUPPLIER_NAME;
+import static com.adriantache.inventoryapp.db.ProductContract.ProductEntry.COLUMN_SUPPLIER_PHONE;
 import static com.adriantache.inventoryapp.db.ProductContract.ProductEntry._ID;
 
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
@@ -55,24 +57,13 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
         TextView errorText = findViewById(R.id.errorText);
         listView.setEmptyView(errorText);
-
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                //add intent for editing entry
-                Intent intent = new Intent(getApplicationContext(), EditorActivity.class);
-                final Uri uri = ContentUris.withAppendedId(CONTENT_URI, id);
-                intent.setData(uri);
-                startActivity(intent);
-            }
-        });
     }
 
 
     @NonNull
     @Override
     public Loader<Cursor> onCreateLoader(int id, @Nullable Bundle args) {
-        String[] projection = {_ID, COLUMN_PRODUCT_NAME, COLUMN_PRICE, COLUMN_QUANTITY};
+        String[] projection = {_ID, COLUMN_PRODUCT_NAME, COLUMN_PRICE, COLUMN_QUANTITY, COLUMN_SUPPLIER_NAME, COLUMN_SUPPLIER_PHONE};
 
         return new CursorLoader(this, CONTENT_URI, projection, null, null, null);
     }
