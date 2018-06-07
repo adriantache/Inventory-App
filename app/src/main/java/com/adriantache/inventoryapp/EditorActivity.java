@@ -165,9 +165,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
                 int quantity = Integer.valueOf(productQuantity.getText().toString());
                 if (currentProductUri == null && quantity > 1) quantity--;
                 else if (currentProductUri != null && quantity > 0) quantity--;
-
-                Log.i("MINUS", "onClick: quantity: "+quantity);
-
+                
                 productQuantity.setText(String.valueOf(quantity));
             }
         });
@@ -184,7 +182,6 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
                 int quantity = Integer.valueOf(productQuantity.getText().toString());
                 quantity++;
 
-                Log.i("MINUS", "onClick: quantity: "+quantity);
                 productQuantity.setText(String.valueOf(quantity));
             }
         });
