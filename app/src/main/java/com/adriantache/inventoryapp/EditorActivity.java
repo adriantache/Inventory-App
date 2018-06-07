@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.LoaderManager;
@@ -15,6 +16,7 @@ import android.support.v4.content.Loader;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -33,10 +35,8 @@ import static com.adriantache.inventoryapp.db.ProductContract.ProductEntry.COLUM
 import static com.adriantache.inventoryapp.db.ProductContract.ProductEntry.COLUMN_SUPPLIER_PHONE;
 
 public class EditorActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
-
     private static final int ERROR_VALUE = -1;
     private static final int MISSING_FIELD = -10;
-
 
     private EditText productName;
     private EditText productPrice;
@@ -46,6 +46,9 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
     private Button deleteProduct;
     private Button callSupplier;
     private String supplierPhoneNumber;
+
+    //fix for double button click
+    private long lastClickTime = 0;
 
     private Uri currentProductUri = null;
     private boolean valuesChanged = false;
@@ -153,9 +156,18 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         quantityMinus.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                //fix for double button click
+                if (SystemClock.elapsedRealtime() - lastClickTime < 100){
+                    return;
+                }
+                lastClickTime = SystemClock.elapsedRealtime();
+
                 int quantity = Integer.valueOf(productQuantity.getText().toString());
                 if (currentProductUri == null && quantity > 1) quantity--;
                 else if (currentProductUri != null && quantity > 0) quantity--;
+
+                Log.i("MINUS", "onClick: quantity: "+quantity);
+
                 productQuantity.setText(String.valueOf(quantity));
             }
         });
@@ -163,8 +175,16 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         quantityPlus.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                //fix for double button click
+                if (SystemClock.elapsedRealtime() - lastClickTime < 100){
+                    return;
+                }
+                lastClickTime = SystemClock.elapsedRealtime();
+
                 int quantity = Integer.valueOf(productQuantity.getText().toString());
                 quantity++;
+
+                Log.i("MINUS", "onClick: quantity: "+quantity);
                 productQuantity.setText(String.valueOf(quantity));
             }
         });
